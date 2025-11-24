@@ -4,6 +4,11 @@
 
 local version = "0.3"
 
+-- If set, prefer this monitor peripheral name (e.g. "monitor_0" or "largeMonitor")
+-- Leave nil to auto-detect directly attached monitor
+local preferredMonitor = nil
+
+
 -- Peripheral type prefix for the energizer on the modem network
 local energizerType = "BigReactors-Energizer"
 
@@ -163,19 +168,25 @@ local function findFirstEnergizerName()
   return nil
 end
 
--- Only directly attached monitor, NOT via wired modem / cable
-local function findLocalMonitorSide()
+-- If preferredMonitor is set, try that first. Otherwise look for a directly attached monitor.
+local function findMonitor()
+  if preferredMonitor and peripheral.isPresent(preferredMonitor) and peripheral.getType(preferredMonitor) == "monitor" then
+    return preferredMonitor
+  end
+
+  -- fallback: only local monitor directly on computer
   local sides = { "top", "bottom", "left", "right", "front", "back" }
   for _, side in ipairs(sides) do
     if peripheral.isPresent(side) and peripheral.getType(side) == "monitor" then
       return side
     end
   end
+
   return nil
 end
 
 local function initMon()
-  monSide = findLocalMonitorSide()
+  monSide = findMonitor()
   if not monSide then
     mon = nil
     return
